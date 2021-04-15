@@ -2,11 +2,17 @@ var nodemailer = require('nodemailer');
 var smtpTransport = require('nodemailer-smtp-transport');
 var firebase = require('firebase');
 var admin = require("firebase-admin");
+var emails = require("./emails")
+var message = require('./message')
+const fs = require('fs');
+
 require('dotenv').config()
 
 let transporter = nodemailer.createTransport(smtpTransport({
     service: 'gmail',
     host: 'smtp.gmail.com',
+    secure: true,
+    pool: true,
     auth: {
         user:  process.env.EMAIL,
         pass:  process.env.PASSWORD
@@ -32,38 +38,109 @@ var firebaseConfig = {
     appId: process.env.APP_ID,
     measurementId: "G-29BMBQ8P6Y"
 };
-
+var message = message.message;
 firebase.initializeApp(firebaseConfig);
 var usersList = [];
-getAllUser();
-async function getAllUser() {
- await firebase.database().ref("users").on("value", data => {
-        usersList.push(data.val());    
-      }, errorObject => {
-        console.log(errorObject.code);
-    });
 
-    for( var i = 0; i < usersList.length() ; i++) {
-       sendEmail("That was easy "+i, usersList.email);
-    }
+sendEmailNow()
+async function sendEmailNow() {
+//  var   emailUser = emails.emailList 
+  // for(var i = 0; i < emailUser.length; i++) {
+   
+  //   setTimeout(function () {  console.log("Timeout")  }, 3000);
+  //   console.log(emailUser[i])
+  // }
+  var   emailUser = emails.emailList 
+
+//   waka.raymund@gmail.com
+//   chilaulechilax@gmail.com
+//  caznuvunga@gmail.com
+// sisjunior33@gmail.com
+// AGOSTINHODOSSANTOS27@gmail.com
+// almirando.quive@gmail.com
+// 
+
+
+  //var  emailUser = ['almirando.quive@gmail.com', 'Elcidiadabala@gmail.com', 'AGOSTINHODOSSANTOS27@gmail.com','sisjunior33@gmail.com', 'caznuvunga@gmail.com', 'waka.raymund@gmail.com', 'messiasmanhica17@gmail.com' ];
+
+
+  // var i = 0
+  // setInterval(()=>{
+  //   i++
+  //   if(i < emailUser.length)
+  //   sendEmail(message,  emailUser[i])
+  // },1500);
+
+  emailUser.forEach((value) => {
+    sendEmail(message,  value)
+  })
+ 
+
+  // emailUser.forEach(async(value) => {
+
+  //    var status = await sendEmail(message,  value)
     
+  // })
+
 }
 
-function sendEmail(message, email) {
+async function sucessLog(email) {
+  fs.appendFileSync('sucess.txt', email+"\n");
+}
+
+async function errorLog(email) {
+  fs.appendFileSync('error.txt', '"'+email+'"'+","+"\n");
+}
+
+
+
+// async function getAllUser() {
+//  await firebase.database().ref("users").on("value", data => {
+        
+//         var dataValue = data.val()
+       
+
+//         for(var item in dataValue) {
+
+//         firebase.database().ref("users/"+item).on("value", data => { 
+            
+//             sendEmail(message, data.val().email)
+//           })
+          
+//         }
+       
+  
+
+//       }, errorObject => {
+//         console.log(errorObject.code);
+//     });
+    
+// }
+
+// sendEmail("message", "agostinhodossantos27@gmail.com")
+async function sendEmail(message, email) {
  
  var mailOptions = {
-    from: 'agostinhodossantos27@gmail.com',
+    from: 'contacto@onemediamoz.com',
     to: email,
-    subject: 'Test Sending Email ',
-    text: email
+    subject: 'Educa Moçambique',
+    html: message
   };
   
-  transporter.sendMail(mailOptions, function(error, info){
+ transporter.sendMail(mailOptions, function(error, info){
     if (error) {
-      console.log(error);
+
+      console.log(error)
+      errorLog(email)
+    
+      return false
     } else {
-      console.log('Email sent: ' + info.response);
+      console.log("Sucess: "+ email)
+      sucessLog(email)
+      return true
+      
     }
+   
   });
 
 }
